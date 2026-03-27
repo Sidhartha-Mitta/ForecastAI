@@ -1,5 +1,9 @@
+from pathlib import Path
+
 import joblib
 from tensorflow.keras.models import load_model
 
-lstm = load_model("models/lstm_model.h5", compile=False)
-xgb = joblib.load("models/xgb_model.pkl")
+MODEL_DIR = Path(__file__).resolve().parents[2] / "models"
+
+lstm = load_model(MODEL_DIR / "lstm_model.h5", compile=False)
+xgb = joblib.load(MODEL_DIR / "xgb_model.pkl")

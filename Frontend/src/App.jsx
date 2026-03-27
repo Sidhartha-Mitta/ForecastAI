@@ -21,6 +21,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [metaError, setMetaError] = useState('');
   const [error, setError] = useState('');
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIosInstallHint, setIsIosInstallHint] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +47,31 @@ function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isiPhoneOrIPad = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    setIsInstalled(standalone);
+    setIsIosInstallHint(isiPhoneOrIPad && !standalone);
+
+    function handleBeforeInstallPrompt(event) {
+      event.preventDefault();
+      setDeferredPrompt(event);
+    }
+
+    function handleAppInstalled() {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -76,10 +104,28 @@ function App() {
     setPage('predict');
   }
 
+  async function handleInstall() {
+    if (!deferredPrompt) {
+      return;
+    }
+
+    await deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+  }
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)]">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <Navbar appName={meta.app_name} page={page} onNavigate={setPage} />
+        <Navbar
+          appName={meta.app_name}
+          page={page}
+          onNavigate={setPage}
+          canInstall={Boolean(deferredPrompt)}
+          isInstalled={isInstalled}
+          isIosInstallHint={isIosInstallHint}
+          onInstall={handleInstall}
+        />
 
         <main className="flex-1 py-4">
           {page === 'home' ? (
@@ -87,7 +133,7 @@ function App() {
           ) : (
             <div className="space-y-6">
               <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <div className="space-y-6">
+                <div className="order-2 space-y-6 lg:order-1">
                   <PredictionForm
                     cities={meta.supported_cities}
                     forecastDays={meta.forecast_days}
@@ -114,16 +160,22 @@ function App() {
                   ) : null}
                 </div>
 
-                <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="order-1 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:order-2">
                   <p className="text-sm uppercase tracking-[0.28em] text-sky-700/70">Predict Workspace</p>
                   <h2 className="font-display mt-3 text-3xl font-semibold text-slate-900">Generate and inspect forecast results</h2>
                   <p className="mt-4 text-base leading-8 text-slate-600">
                     Choose a forecast mode, run the prediction, and inspect a cleaner dashboard with interactive temperature and rainfall views.
                   </p>
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">Single day for exact weather insight</div>
-                    <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">Date range for a focused comparison window</div>
-                    <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">Next 7 days for quick planning</div>
+                    <div className="flex min-h-[96px] items-center rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">
+                      Single day for exact weather insight
+                    </div>
+                    <div className="flex min-h-[96px] items-center rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">
+                      Date range for a focused comparison window
+                    </div>
+                    <div className="flex min-h-[96px] items-center rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">
+                      Next 7 days for quick planning
+                    </div>
                   </div>
                   <WorkspaceShowcase />
                 </div>

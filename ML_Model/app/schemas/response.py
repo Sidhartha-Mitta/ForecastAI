@@ -54,6 +54,8 @@ class AggregatePredictResponse(BaseModel):
 class ExplainResponse(BaseModel):
     summary: str
     weather_reason: str
+    pattern_breakdown: str
+    operational_guidance: str
     agricultural_assessment: str
     risk_note: str
 

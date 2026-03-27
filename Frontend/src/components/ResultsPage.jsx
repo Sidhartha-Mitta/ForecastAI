@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AIExplanationPanel from './AIExplanationPanel';
-import DailyPredictionTable from './DailyPredictionTable';
 import ResultsHero from './ResultsHero';
 import SummaryStats from './SummaryStats';
 import WeatherChart from './WeatherChart';
@@ -25,7 +24,6 @@ export default function ResultsPage({ result }) {
       </div>
 
       {showExplanation ? <AIExplanationPanel result={result} /> : null}
-      <DailyPredictionTable days={result.days} />
     </div>
   );
 }

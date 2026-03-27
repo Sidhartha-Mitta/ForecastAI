@@ -128,20 +128,29 @@ function SingleDayWeatherCard({ day }) {
 
 function RainfallBars({ days, activeIndex, onSelect }) {
   const maxRain = Math.max(...days.map((day) => day.rainfall), 1);
+  const needsScroll = days.length > 8;
 
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white p-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.28em] text-sky-700/70">Rainfall</p>
           <h4 className="font-display mt-2 text-2xl font-semibold text-slate-900">Daily rainfall intensity</h4>
         </div>
-        <div className="rounded-full bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700">
-          Peak {maxRain.toFixed(1)} mm
+        <div className="flex flex-wrap items-center gap-2">
+          {needsScroll ? (
+            <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">
+              Scroll horizontally to view all days
+            </span>
+          ) : null}
+          <div className="rounded-full bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700">
+            Peak {maxRain.toFixed(1)} mm
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 flex h-60 items-end gap-3 overflow-x-auto pb-2">
+      <div className="mt-6 overflow-x-auto pb-3">
+        <div className={`flex h-72 items-end gap-4 ${needsScroll ? 'min-w-max pr-4' : ''}`}>
         {days.map((day, index) => {
           const height = Math.max((day.rainfall / maxRain) * 180, day.rainfall > 0 ? 12 : 4);
           const isActive = activeIndex === index;
@@ -153,9 +162,13 @@ function RainfallBars({ days, activeIndex, onSelect }) {
               onMouseEnter={() => onSelect(index)}
               onFocus={() => onSelect(index)}
               onClick={() => onSelect(index)}
-              className="flex min-w-[72px] flex-1 flex-col items-center justify-end gap-3 rounded-2xl px-2 py-2 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className={`flex flex-col items-center justify-end gap-3 rounded-2xl px-3 py-3 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+                needsScroll ? 'min-w-[96px]' : 'min-w-[80px] flex-1'
+              }`}
             >
-              <div className={`text-xs font-medium ${isActive ? 'text-indigo-700' : 'text-slate-500'}`}>{day.rainfall.toFixed(1)} mm</div>
+              <div className={`rounded-full px-3 py-1 text-sm font-semibold ${isActive ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                {day.rainfall.toFixed(1)} mm
+              </div>
               <div className="flex h-44 items-end">
                 <div
                   className={`w-10 rounded-t-[18px] shadow-sm transition-all ${
@@ -165,19 +178,21 @@ function RainfallBars({ days, activeIndex, onSelect }) {
                   }`}
                   style={{ height }}
                   title={`${day.date}: ${day.rainfall.toFixed(1)} mm`}
-                />
-              </div>
-              <div className="text-center text-xs text-slate-500">{formatShortDate(day.date)}</div>
+              />
+            </div>
+              <div className={`text-center text-sm font-medium ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>{formatShortDate(day.date)}</div>
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
 }
 
 function TemperatureTrend({ days, activeIndex, onSelect }) {
-  const chartWidth = 860;
+  const needsScroll = days.length > 8;
+  const chartWidth = Math.max(860, days.length * 92);
   const chartHeight = 240;
   const maxTemp = Math.max(...days.map((day) => day.temperature_max));
   const minTemp = Math.min(...days.map((day) => day.temperature_min));
@@ -185,15 +200,15 @@ function TemperatureTrend({ days, activeIndex, onSelect }) {
   const paddedMax = Math.ceil(maxTemp + 2);
   const lineMinPath = useMemo(
     () => buildLinePath(days.map((day) => day.temperature_min), chartWidth, chartHeight, paddedMin, paddedMax),
-    [days, paddedMax, paddedMin],
+    [chartWidth, days, paddedMax, paddedMin],
   );
   const lineMaxPath = useMemo(
     () => buildLinePath(days.map((day) => day.temperature_max), chartWidth, chartHeight, paddedMin, paddedMax),
-    [days, paddedMax, paddedMin],
+    [chartWidth, days, paddedMax, paddedMin],
   );
   const areaPath = useMemo(
     () => buildAreaPath(days.map((day) => (day.temperature_max + day.temperature_min) / 2), chartWidth, chartHeight, paddedMin, paddedMax),
-    [days, paddedMax, paddedMin],
+    [chartWidth, days, paddedMax, paddedMin],
   );
   const gridValues = Array.from({ length: 5 }, (_, index) => paddedMin + ((paddedMax - paddedMin) / 4) * index).reverse();
   const activeDay = days[activeIndex] ?? days[0];
@@ -205,24 +220,31 @@ function TemperatureTrend({ days, activeIndex, onSelect }) {
           <p className="text-sm uppercase tracking-[0.28em] text-sky-700/70">Temperature</p>
           <h4 className="font-display mt-2 text-2xl font-semibold text-slate-900">Interactive max/min temperature trend</h4>
         </div>
-        <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-          <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Focused Day</div>
-          <div className="mt-2 font-semibold text-slate-900">{activeDay.date}</div>
-          <div className="mt-1 text-sm text-slate-600">
-            {activeDay.temperature_min.toFixed(1)} °C to {activeDay.temperature_max.toFixed(1)} °C
+        <div className="flex flex-wrap items-center gap-2">
+          {needsScroll ? (
+            <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">
+              Scroll horizontally to view all days
+            </span>
+          ) : null}
+          <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+            <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Focused Day</div>
+            <div className="mt-2 font-semibold text-slate-900">{activeDay.date}</div>
+            <div className="mt-1 text-sm text-slate-600">
+              {activeDay.temperature_min.toFixed(1)} °C to {activeDay.temperature_max.toFixed(1)} °C
+            </div>
           </div>
         </div>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[72px_1fr]">
-        <div className="hidden justify-between text-sm text-slate-400 lg:flex lg:flex-col">
+        <div className="hidden justify-between text-sm font-medium text-slate-500 lg:flex lg:flex-col">
           {gridValues.map((value) => (
             <span key={value}>{value.toFixed(0)}°</span>
           ))}
         </div>
 
         <div className="overflow-x-auto">
-          <div className="min-w-[720px] rounded-[24px] border border-sky-100 bg-white/90 p-4">
+          <div className="rounded-[24px] border border-sky-100 bg-white/90 p-4" style={{ minWidth: `${chartWidth}px` }}>
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-64 w-full" role="img" aria-label="Temperature chart">
               <defs>
                 <linearGradient id="tempArea" x1="0%" x2="0%" y1="0%" y2="100%">
@@ -271,7 +293,7 @@ function TemperatureTrend({ days, activeIndex, onSelect }) {
               })}
             </svg>
 
-            <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(70px,1fr))] gap-2">
+            <div className="mt-5 flex gap-3">
               {days.map((day, index) => {
                 const isActive = index === activeIndex;
                 return (
@@ -281,12 +303,12 @@ function TemperatureTrend({ days, activeIndex, onSelect }) {
                     onMouseEnter={() => onSelect(index)}
                     onFocus={() => onSelect(index)}
                     onClick={() => onSelect(index)}
-                    className={`rounded-2xl border px-3 py-3 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+                    className={`min-w-[96px] rounded-2xl border px-3 py-3 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
                       isActive ? 'border-sky-300 bg-sky-50 text-slate-900 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-sky-200'
                     }`}
                   >
                     <div className="font-medium">{formatShortDate(day.date)}</div>
-                    <div className="mt-1 text-xs">{day.temperature_max.toFixed(0)}° / {day.temperature_min.toFixed(0)}°</div>
+                    <div className="mt-2 text-sm font-semibold text-slate-900">{day.temperature_max.toFixed(0)}° / {day.temperature_min.toFixed(0)}°</div>
                   </button>
                 );
               })}
@@ -389,6 +411,7 @@ function MultiDayWeatherBoard({ days }) {
   const { hottest, coolest, wettest } = getSummary(days);
   const [activeIndex, setActiveIndex] = useState(0);
   const activeDay = days[activeIndex] ?? days[0];
+  const isLongRange = days.length > 8;
 
   return (
     <div className="mt-6 space-y-4">
@@ -410,10 +433,17 @@ function MultiDayWeatherBoard({ days }) {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <TemperatureTrend days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
-        <RainfallBars days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
-      </div>
+      {isLongRange ? (
+        <div className="space-y-4">
+          <TemperatureTrend days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
+          <RainfallBars days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
+        </div>
+      ) : (
+        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <TemperatureTrend days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
+          <RainfallBars days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />
+        </div>
+      )}
 
       <ActiveDayDetails day={activeDay} />
       <ForecastCards days={days} activeIndex={activeIndex} onSelect={setActiveIndex} />

@@ -1,6 +1,6 @@
-import { CloudSun } from 'lucide-react';
+import { CloudSun, Download, Smartphone } from 'lucide-react';
 
-export default function Navbar({ appName, page, onNavigate }) {
+export default function Navbar({ appName, page, onNavigate, canInstall, isInstalled, isIosInstallHint, onInstall }) {
   return (
     <nav className="sticky top-0 z-20 mb-8 rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -33,6 +33,31 @@ export default function Navbar({ appName, page, onNavigate }) {
           >
             Predict Weather
           </button>
+
+          {canInstall ? (
+            <button
+              type="button"
+              onClick={onInstall}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+            >
+              <Download className="h-4 w-4" />
+              Install App
+            </button>
+          ) : null}
+
+          {!canInstall && !isInstalled && isIosInstallHint ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800">
+              <Smartphone className="h-4 w-4" />
+              Add to Home Screen on Safari
+            </div>
+          ) : null}
+
+          {isInstalled ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+              <Smartphone className="h-4 w-4" />
+              Web app installed
+            </div>
+          ) : null}
         </div>
       </div>
     </nav>

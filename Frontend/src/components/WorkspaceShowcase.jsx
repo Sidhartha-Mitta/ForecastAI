@@ -9,8 +9,8 @@ const featurePills = [
 
 export default function WorkspaceShowcase() {
   return (
-    <div className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-      <div className="flex items-center justify-center">
+    <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(240px,0.9fr)_minmax(320px,1.1fr)] lg:items-start">
+      <div className="flex justify-center lg:justify-start lg:pt-3">
         <motion.div
           animate={{ y: [0, -10, 0], rotate: [0, 2, 0] }}
           transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -32,7 +32,7 @@ export default function WorkspaceShowcase() {
         </motion.div>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex min-h-full flex-col gap-4">
         <div className="rounded-3xl bg-slate-50 p-5">
           <p className="text-sm font-medium text-slate-900">Live prediction hub</p>
           <p className="mt-2 text-sm leading-7 text-slate-600">
@@ -40,18 +40,18 @@ export default function WorkspaceShowcase() {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-3">
           {featurePills.map(({ label, icon: Icon }) => (
             <motion.div
               key={label}
               whileHover={{ y: -2 }}
-              className="rounded-2xl border border-slate-200 bg-white p-4"
+              className="flex min-h-[72px] items-center rounded-2xl border border-slate-200 bg-white p-4"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-sky-100 p-2 text-sky-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
                   <Icon className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-medium text-slate-700">{label}</span>
+                <span className="text-sm font-medium leading-5 text-slate-700">{label}</span>
               </div>
             </motion.div>
           ))}
